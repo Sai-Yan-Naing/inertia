@@ -35,7 +35,7 @@
                             <td>{{user.email}}</td>
                             <td>{{user.created_at}}</td>
                             <td>
-                                <a href="#" class="btn btn-success">Edit</a>
+                                <inertia-link :href="`/user/${user.id}/edit`" class="btn btn-success">Edit</inertia-link>
                                 <button @click="destroy(user.id)" class="btn btn-danger">Delete</button>
                             </td>
                         </tr>

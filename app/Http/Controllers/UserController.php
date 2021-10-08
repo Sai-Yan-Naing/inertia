@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\User;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -27,7 +28,9 @@ class UserController extends Controller
      */
     public function create()
     {
-        return Inertia::render('User/Create');
+        return Inertia::render('User/Create',[
+            'user' => new User
+        ]);
     }
 
     /**
@@ -38,10 +41,15 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|max:100',
+            'email' => 'required|email|max:100|unique:users',
+            'password'=>'required|min:6'
+        ]);
         User::create([
             'name' =>$request->name,
             'email' =>$request->email,
-            'password' =>$request->pass,
+            'password'=> bcrypt($request->password),
         ]);
         return redirect()
         ->route('user.index')
@@ -65,9 +73,9 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(User $user)
     {
-        //
+        return Inertia::render("User/Edit",compact('user'));
     }
 
     /**
@@ -77,9 +85,32 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, User $user)
     {
-        //
+        $request->validate([
+            'name' => 'required|max:100',
+            'email' => [
+                'required',
+                'email',
+                'max:100',
+                Rule::unique('users')->ignore($user->id,'id')
+            ],
+            'password'=>'nullable|min:6|max:100',
+        ]);
+        $user->update([
+            'name'=>$request->name,
+            'email'=>$request->email,
+        ]);
+        if($request->filled('password')){
+            $user->update([
+                'password'=> bcrypt($request->password),
+
+            ]);
+        }
+        return redirect()
+        ->route('user.index')
+        ->with('success','A user was update successfully.');
+
     }
 
     /**
